@@ -44,4 +44,10 @@ export const Message = {
   FAILED_DELETED: "Failed to delete account.",
   DB_CONNECTED: "Connected to the database successfully!",
   DB_FAILED: "Failed to connect to the database",
+  DETAILS_CREATED: "Details created sucessfully.",
+  FAILED_DETAILS: "Failed to create details.",
+  USERNAME: "Username is required.",
+  BIO_EXISTED: "Bio already exists for this user.",
+  BIO_CREATED: "User bio created successfully.",
+  ERROR: "Something went wrong. Please try again."
 };

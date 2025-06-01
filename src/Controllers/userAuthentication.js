@@ -6,8 +6,44 @@ import {
   sendOtpverifyEmail,
   sendPasswordResetEmail,
 } from "../utils/mailBox.js";
-import { generateOtp, generateOtpExpiresAt } from "../utils/otp.js";
-import crypto from "crypto";
+import { generateOtp, generateOtpExpiresAt, token, tokenExpiration } from "../utils/otp.js";
+
+import cron from 'node-cron';
+
+
+cron.schedule('*/1 * * * *', async () => {
+    // console.log("Running OTP cleanup at", new Date().toISOString());
+  try {
+    const result = await prisma.user.updateMany({
+      where: {
+        OR: [
+          {
+            otpExpiresAt: {
+              lt: new Date(),
+            },
+          },
+          {
+            resetPasswordExpires: {
+              lt: new Date(),
+            },
+          },
+        ],
+      },
+      data: {
+        otp: null,
+        otpExpiresAt: null,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
+    });
+
+    // console.log(`Expired OTPs and tokens cleared: ${result.count}`);
+  } catch (error) {
+    // console.error('Error clearing expired OTPs:', error);
+       res.status(500).json({ message: error });
+  }
+});
+
 
 export const register = async (req, res) => {
   const { email, password, confirmPassword } = req.body;
@@ -57,6 +93,7 @@ export const register = async (req, res) => {
   }
 };
 
+
 export const verifyEmail = async (req, res) => {
   const { email, otp } = req.body;
   try {
@@ -71,11 +108,11 @@ export const verifyEmail = async (req, res) => {
         message: Message.OTP_REQUIRED,
       });
     }
-    if (!findUser || !findUser.otp || !findUser.otpExpiresAt) {
-      return res.status(400).json({
-        message: Message.OTP_REQUIRED,
-      });
-    }
+    // if (!findUser || !findUser.otp || !findUser.otpExpiresAt) {
+    //   return res.status(400).json({
+    //     message: Message.OTP_REQUIRED,
+    //   });
+    // }
     if (new Date() > findUser.otpExpiresAt) {
       return res.status(401).json({
         message: Message.OTP_EXPIRED,
@@ -213,8 +250,7 @@ export const forgotPassword = async (req, res) => {
       return res.status(400).json({ message: Message.USER_NOT_FOUND });
     }
 
-    const token = crypto.randomBytes(20).toString("hex");
-    const tokenExpiration = new Date(Date.now() + 1 * 60 * 1000); // 1 minutes
+   
 
     const resttoken = await prisma.user.update({
       where: { email },
@@ -226,11 +262,10 @@ export const forgotPassword = async (req, res) => {
 
     await sendPasswordResetEmail(email, token); // Your email utility
 
-    res
-      .status(200)
-      .json({ 
-        // resttoken,
-         message: Message.PASSWORD_RESET_LINK_SENT });
+    res.status(200).json({
+      // resttoken,
+      message: Message.PASSWORD_RESET_LINK_SENT,
+    });
   } catch (error) {
     console.error("Forgot password error", error);
     res.status(500).json({ message: Message.FORGOT_PASSWORD_ERROR });
@@ -307,3 +342,5 @@ export const deleteAcc = async (req, res) => {
     });
   }
 };
+
+
