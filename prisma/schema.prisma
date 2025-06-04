@@ -29,14 +29,16 @@ model user {
 }
 
 model user_Bio {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  bio       String?
-  gender    String?
-  DOB       String?
-  country   String?
-  userId    Int      @unique
-  user      user     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  profilePhoto String?
+  photoPath    String?
+  bio          String?
+  gender       String?
+  DOB          DateTime?
+  country      String?
+  userId       Int      @unique
+  user         user     @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

@@ -7,7 +7,6 @@ import {
   sendPasswordResetEmail,
 } from "../utils/mailBox.js";
 import { generateOtp, generateOtpExpiresAt, token, tokenExpiration } from "../utils/otp.js";
-
 import cron from 'node-cron';
 
 
@@ -93,7 +92,6 @@ export const register = async (req, res) => {
   }
 };
 
-
 export const verifyEmail = async (req, res) => {
   const { email, otp } = req.body;
   try {
@@ -139,6 +137,42 @@ export const verifyEmail = async (req, res) => {
     return res.status(500).json({
       message: Message.OTP_VERIFICATION_FAILED,
     });
+  }
+};
+
+export const resendOtp = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const findUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!findUser) {
+      return res.status(404).json({ message: Message.USER_NOT_FOUND });
+    }
+
+    if (findUser.verified) {
+      return res.status(400).json({ message: "User is already verified." });
+    }
+
+    const otp = generateOtp();
+    const otpExpiresAt = generateOtpExpiresAt();
+
+    await prisma.user.update({
+      where: { email },
+      data: {
+        otp,
+        otpExpiresAt,
+        verified: false,
+      },
+    });
+
+    await sendOtpverifyEmail(email, otp);
+
+    return res.status(200).json({ message: "OTP resent successfully." });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to resend OTP." });
   }
 };
 

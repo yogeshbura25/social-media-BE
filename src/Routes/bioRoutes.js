@@ -1,15 +1,18 @@
 import { Router } from "express";
 import {
-
-  createUserBio, getUserBio, updateUserBio, deleteUserBio
+  createUserBio,
+  getUserBio,
+  updateUserBio,
+  deleteUserBio
 } from "../Controllers/bioDetails.js";
 import { verifyToken } from "../middleware/authentication.js";
+import { upload } from "../utils/multer-config.js"; 
 
 const router = Router();
 
+router.post("/createUserBio", verifyToken, upload.single('profilePhoto'), createUserBio);
+router.get("/getUserBio", verifyToken, getUserBio);
+router.patch("/updateUserBio", verifyToken, upload.single('profilePhoto'), updateUserBio);
+router.delete("/deleteUserBio", verifyToken, deleteUserBio);
 
-router.post("/createUserBio", verifyToken, createUserBio);
-router.get("/getUserBio", verifyToken,  getUserBio);
-router.patch("/updateUserBio", verifyToken, updateUserBio);
-router.delete("/deleteUserBio", verifyToken, deleteUserBio)
 export default router;

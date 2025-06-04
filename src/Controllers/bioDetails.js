@@ -1,30 +1,42 @@
 import prisma from "../utils/db-config.js";
 import { Message } from "../utils/Message.js";
+import fs from "fs";
 
 export const createUserBio = async (req, res) => {
   const { username, bio, gender, DOB, country } = req.body;
   const userId = req.user.id;
+  const file = req.file;
+
+ 
+  const baseUrl = `${process.env.baseUrl}`;
+  const profilePhoto = file?.filename;
+  const photoPath = file ? `${baseUrl}/uploads/${file.filename}` : null;
 
   if (!username) {
+   
+    if (file) fs.unlinkSync(file.path);
     return res.status(400).json({ message: Message.USERNAME });
   }
 
   try {
-    // Check if user bio already exists for this user
+ 
     const bioExists = await prisma.user_Bio.findUnique({
       where: { userId },
     });
 
     if (bioExists) {
+      if (file) fs.unlinkSync(file.path);
       return res.status(409).json({ message: Message.BIO_EXISTED });
     }
 
     const newUserBio = await prisma.user_Bio.create({
       data: {
         username,
+        profilePhoto,
+        photoPath, 
         bio,
         gender,
-        DOB,
+        DOB: DOB ? new Date(DOB) : null,
         country,
         userId,
       },
@@ -35,9 +47,13 @@ export const createUserBio = async (req, res) => {
       data: newUserBio,
     });
   } catch (error) {
+  
+    if (file) fs.unlinkSync(file.path);
+
     if (error.code === "P2002") {
       return res.status(409).json({ message: "Username already taken." });
     }
+
     return res.status(500).json({ message: Message.ERROR });
   }
 };
@@ -46,16 +62,23 @@ export const getUserBio = async (req, res) => {
   const userId = req.user.id;
 
   try {
-
     const UserBio = await prisma.user_Bio.findUnique({
       where: {
         userId,
       },
     });
+    const baseUrl = `${process.env.baseUrl}`;
+
+    const fullPhotoUrl = UserBio.profilePhoto
+      ? `${baseUrl}/uploads/${UserBio.profilePhoto}`
+      : null;
 
     return res.status(201).json({
       message: "User bio fecthed successfully.",
-      data: UserBio,
+      data: {
+        ...UserBio,
+        photoPath: fullPhotoUrl, 
+      },
     });
   } catch (error) {
     return res.status(500).json({ message: Message.ERROR });
@@ -65,9 +88,9 @@ export const getUserBio = async (req, res) => {
 export const updateUserBio = async (req, res) => {
   const { username, bio, gender, DOB, country } = req.body;
   const userId = req.user.id;
-
+  const file = req.file;
   try {
-    // Check if user bio already exists for this user
+  
     const bioExists = await prisma.user_Bio.findUnique({
       where: { userId },
     });
@@ -75,7 +98,15 @@ export const updateUserBio = async (req, res) => {
     if (!bioExists) {
       return res.status(404).json({ message: "User bio not found." });
     }
+  
+    let profilePhoto = bioExists.profilePhoto;
+    let photoPath = bioExists.photoPath;
 
+    if (file) {
+      const baseUrl = `${process.env.baseUrl}`;
+      profilePhoto = file.filename;
+      photoPath = `${baseUrl}/uploads/${file.filename}`;
+    }
     const newUserBio = await prisma.user_Bio.update({
       where: {
         userId,
@@ -87,6 +118,8 @@ export const updateUserBio = async (req, res) => {
         DOB,
         country,
         userId,
+        profilePhoto,
+        photoPath,
       },
     });
 
