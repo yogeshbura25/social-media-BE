@@ -1,7 +1,7 @@
 import prisma from "../utils/db-config.js";
 import { Message } from "../utils/Message.js";
 import fs from "fs";
-
+import path from "path";
 export const createUserBio = async (req, res) => {
   const { username, bio, gender, DOB, country } = req.body;
   const userId = req.user.id;
@@ -11,7 +11,7 @@ export const createUserBio = async (req, res) => {
   const baseUrl = `${process.env.baseUrl}`;
   const profilePhoto = file?.filename;
   const photoPath = file ? `${baseUrl}/uploads/${file.filename}` : null;
-
+// photoPath: file ? `https://s3.amazonaws.com/yourbucket/${file.filename}` : null, Production
   if (!username) {
    
     if (file) fs.unlinkSync(file.path);
@@ -89,8 +89,10 @@ export const updateUserBio = async (req, res) => {
   const { username, bio, gender, DOB, country } = req.body;
   const userId = req.user.id;
   const file = req.file;
+
+  const baseUrl = process.env.baseUrl || "http://localhost:3000";
+
   try {
-  
     const bioExists = await prisma.user_Bio.findUnique({
       where: { userId },
     });
@@ -98,15 +100,28 @@ export const updateUserBio = async (req, res) => {
     if (!bioExists) {
       return res.status(404).json({ message: "User bio not found." });
     }
-  
+
     let profilePhoto = bioExists.profilePhoto;
     let photoPath = bioExists.photoPath;
 
+    //  Handle new file upload and delete old one
     if (file) {
-      const baseUrl = `${process.env.baseUrl}`;
+      const oldFilePath = path.join("uploads", "photos", profilePhoto);
+
+      try {
+        if (profilePhoto && fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath); //  Remove old file from disk
+          console.log("Old file deleted:", oldFilePath);
+        }
+      } catch (err) {
+        console.error("Failed to delete old photo:", err.message);
+      }
+
       profilePhoto = file.filename;
-      photoPath = `${baseUrl}/uploads/${file.filename}`;
+      photoPath = `${baseUrl}/uploads/photos/${file.filename}`;
     }
+
+    //  Update database
     const newUserBio = await prisma.user_Bio.update({
       where: {
         userId,
@@ -117,7 +132,6 @@ export const updateUserBio = async (req, res) => {
         gender,
         DOB,
         country,
-        userId,
         profilePhoto,
         photoPath,
       },
@@ -128,10 +142,10 @@ export const updateUserBio = async (req, res) => {
       data: newUserBio,
     });
   } catch (error) {
-    return res.status(500).json({ message: Message.ERROR });
+    console.error("Update error:", error);
+    return res.status(500).json({ message: "Something went wrong." });
   }
 };
-
 export const deleteUserBio = async (req, res) => {
   const userId = req.user.id;
 
