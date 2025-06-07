@@ -9,7 +9,7 @@ import {
   forgotPassword,
   resetPassword,
 
-} from "../Controllers/userAuthentication.js";
+} from "../Controllers/userControllers.js";
 import { verifyToken } from "../middleware/authentication.js";
 
 const router = Router();

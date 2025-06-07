@@ -7,7 +7,7 @@ export const verifyToken = async (req, res, next) => {
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
-        message: Message.unauthorized, // You can customize this
+        message: Message.unauthorized, 
       });
     }
 

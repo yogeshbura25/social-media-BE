@@ -1,15 +1,15 @@
 import { Router } from "express";
 import {
- createPost,getPost,deletePost
-} from "../Controllers/userPost.js";
+ createPost,getPost,deletePost,updatePost
+} from "../Controllers/postControllers.js";
 import { verifyToken } from "../middleware/authentication.js";
  
 import { uploadPost } from "../utils/multer-config.js"; 
 const router = Router();
 
-router.post("/createPost", verifyToken, uploadPost.single("post"),createPost);
-router.get("/getPost", verifyToken, getPost);
-router.delete("/post/:id", verifyToken, deletePost)
-
+router.post("/createPost", verifyToken, uploadPost.array("post", 10), createPost);
+router.get("/posts", verifyToken, getPost);
+router.put("/post/:postId", verifyToken, uploadPost.array("post", 10), updatePost);
+router.delete("/post/:postId", verifyToken, deletePost);
 
 export default router;

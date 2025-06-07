@@ -23,4 +23,4 @@ const storagePost = multer.diskStorage({
     cb(null, uniqueSuffix);
   },
 });
-export const uploadPost = multer({ storage: storagePost }); // ✅ fixed here
+export const uploadPost = multer({ storage: storagePost }); 

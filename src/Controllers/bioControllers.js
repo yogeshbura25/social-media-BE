@@ -2,24 +2,22 @@ import prisma from "../utils/db-config.js";
 import { Message } from "../utils/Message.js";
 import fs from "fs";
 import path from "path";
+
 export const createUserBio = async (req, res) => {
   const { username, bio, gender, DOB, country } = req.body;
   const userId = req.user.id;
   const file = req.file;
 
- 
   const baseUrl = `${process.env.baseUrl}`;
   const profilePhoto = file?.filename;
   const photoPath = file ? `${baseUrl}/uploads/${file.filename}` : null;
-// photoPath: file ? `https://s3.amazonaws.com/yourbucket/${file.filename}` : null, Production
+  // photoPath: file ? `https://s3.amazonaws.com/yourbucket/${file.filename}` : null, Production
   if (!username) {
-   
     if (file) fs.unlinkSync(file.path);
     return res.status(400).json({ message: Message.USERNAME });
   }
 
   try {
- 
     const bioExists = await prisma.user_Bio.findUnique({
       where: { userId },
     });
@@ -33,7 +31,7 @@ export const createUserBio = async (req, res) => {
       data: {
         username,
         profilePhoto,
-        photoPath, 
+        photoPath,
         bio,
         gender,
         DOB: DOB ? new Date(DOB) : null,
@@ -47,7 +45,6 @@ export const createUserBio = async (req, res) => {
       data: newUserBio,
     });
   } catch (error) {
-  
     if (file) fs.unlinkSync(file.path);
 
     if (error.code === "P2002") {
@@ -77,7 +74,7 @@ export const getUserBio = async (req, res) => {
       message: "User bio fecthed successfully.",
       data: {
         ...UserBio,
-        photoPath: fullPhotoUrl, 
+        photoPath: fullPhotoUrl,
       },
     });
   } catch (error) {
@@ -90,7 +87,7 @@ export const updateUserBio = async (req, res) => {
   const userId = req.user.id;
   const file = req.file;
 
-  const baseUrl = process.env.baseUrl || "http://localhost:3000";
+  const baseUrl = process.env.baseUrl;
 
   try {
     const bioExists = await prisma.user_Bio.findUnique({

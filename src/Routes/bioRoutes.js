@@ -4,7 +4,7 @@ import {
   getUserBio,
   updateUserBio,
   deleteUserBio
-} from "../Controllers/bioDetails.js";
+} from "../Controllers/bioControllers.js";
 import { verifyToken } from "../middleware/authentication.js";
 import { upload } from "../utils/multer-config.js"; 
 
