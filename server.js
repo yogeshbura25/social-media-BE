@@ -4,6 +4,7 @@ import path from 'path';
 import routes from "./src/Routes/index.js";
 
 dotenv.config();
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
@@ -16,6 +17,11 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.get("/", (req, res) => {
   res.send("Hello People...");
 });
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true // if you need to send cookies/auth headers
+}));
 
 
 app.use(routes);

@@ -170,3 +170,72 @@ export const deleteUserBio = async (req, res) => {
     return res.status(500).json({ message: Message.ERROR });
   }
 };
+
+export const getCompleteUserProfile = async (req, res) => {
+  const { slug } = req.params;
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        bio: {
+          username: slug,
+        },
+      },
+      include: {
+        bio: true,
+        post: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            files: true,
+            likes: {
+              include: {
+                user: {
+                  select: {
+                    bio: {
+                      select: { username: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        likes: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const formattedPosts = user.post.map((post) => {
+      const likedUsers = post.likes.map(
+        (like) => like.user?.bio?.username || "Unknown"
+      );
+
+      return {
+        ...post,
+        files: post.files.map((file) => ({
+          ...file,
+          postPath: `${process.env.baseUrl}/uploads/post/${file.post}`,
+        })),
+        likeCount: likedUsers.length,
+        likedUsers,
+      };
+    });
+
+    res.status(200).json({
+      message: "Full user profile fetched",
+      profile: {
+        id: user.id,
+        email: user.email,
+        bio: user.bio,
+        posts: formattedPosts,
+        likesGiven: user.likes,
+      },
+    });
+  } catch (error) {
+    console.error("Profile fetch error:", error);
+    res.status(500).json({ message: "Something went wrong." });
+  }
+};

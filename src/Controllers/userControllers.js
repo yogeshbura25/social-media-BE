@@ -81,7 +81,7 @@ export const register = async (req, res) => {
     });
     await sendOtpverifyEmail(email, otp);
     return res.status(200).json({
-      // data: createUSer,
+      data: createUSer,
       message: Message.REGISTER_SUCCESS,
     });
   } catch (error) {
@@ -210,7 +210,7 @@ export const login = async (req, res) => {
         userEmail: findUser.email,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      // { expiresIn: "9h" }
     );
 
     return res.status(200).json({

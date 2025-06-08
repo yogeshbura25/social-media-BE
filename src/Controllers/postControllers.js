@@ -10,7 +10,9 @@ export const createPost = async (req, res) => {
 
   // Validate that at least description or files are provided
   if ((!files || files.length === 0) && !description?.trim()) {
-    return res.status(400).json({ message: "Post must contain a file or description." });
+    return res
+      .status(400)
+      .json({ message: "Post must contain a file or description." });
   }
 
   try {
@@ -46,44 +48,70 @@ export const createPost = async (req, res) => {
         files: createdFiles,
       },
     });
-
   } catch (error) {
     console.error("Create post error:", error);
     return res.status(500).json({ message: "Something went wrong." });
   }
 };
 
-
 export const getPost = async (req, res) => {
   const userId = req.user.id;
+  const baseUrl = process.env.baseUrl;
 
   try {
     const userPosts = await prisma.user_Post.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      include: { files: true },  // Include associated files
+      include: {
+        files: true,
+        likes: {
+          select: {
+            user: {
+              select: {
+                bio: {
+                  select: {
+                    username: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
-    const baseUrl = `${process.env.baseUrl}`;
+    const postsWithDetails = userPosts.map((post) => {
+      const likedUsers = post.likes.map(
+        (like) => like.user?.bio?.username || "Unknown"
+      );
 
-    // Map files' postPath to full URLs (optional if stored relative)
-    const postsWithFiles = userPosts.map((post) => ({
-      ...post,
-      files: post.files.map((file) => ({
-        ...file,
-        postPath: `${baseUrl}/uploads/post/${file.post}`,
-      })),
-    }));
+      return {
+        id: post.id,
+        description: post.description,
+        userId: post.userId,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        files: post.files.map((file) => ({
+          id: file.id,
+          post: file.post,
+          postPath: `${baseUrl}/uploads/post/${file.post}`,
+          postId: file.postId,
+        })),
+        likeCount: likedUsers.length,
+        likedUsers, // only usernames
+      };
+    });
 
     return res.status(200).json({
       message: "User posts fetched successfully.",
-      data: postsWithFiles,
+      data: postsWithDetails,
     });
   } catch (error) {
     console.error("Get posts error:", error);
     return res.status(500).json({ message: "Something went wrong." });
   }
 };
+
 
 
 export const updatePost = async (req, res) => {
@@ -114,7 +142,6 @@ export const updatePost = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong." });
   }
 };
-
 
 export const deletePost = async (req, res) => {
   const postId = parseInt(req.params.postId);
@@ -154,7 +181,9 @@ export const deletePost = async (req, res) => {
       where: { id: post.id },
     });
 
-    return res.status(200).json({ message: "Post and files deleted successfully." });
+    return res
+      .status(200)
+      .json({ message: "Post and files deleted successfully." });
   } catch (error) {
     console.error("Delete post error:", error);
     return res.status(500).json({ message: "Something went wrong." });

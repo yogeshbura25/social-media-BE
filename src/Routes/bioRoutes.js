@@ -3,7 +3,8 @@ import {
   createUserBio,
   getUserBio,
   updateUserBio,
-  deleteUserBio
+  deleteUserBio,
+  getCompleteUserProfile
 } from "../Controllers/bioControllers.js";
 import { verifyToken } from "../middleware/authentication.js";
 import { upload } from "../utils/multer-config.js"; 
@@ -14,5 +15,5 @@ router.post("/createUserBio", verifyToken, upload.single('profilePhoto'), create
 router.get("/getUserBio", verifyToken, getUserBio);
 router.patch("/updateUserBio", verifyToken, upload.single('profilePhoto'), updateUserBio);
 router.delete("/deleteUserBio", verifyToken, deleteUserBio);
-
+router.get("/getCompleteUserProfile/:slug", verifyToken, getCompleteUserProfile);
 export default router;
