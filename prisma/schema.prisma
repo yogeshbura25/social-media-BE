@@ -53,6 +53,7 @@ model user_Post {
   user        user     @relation(fields: [userId], references: [id])
   files       File[]
   likes       Likes[]
+  tags        Tags[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -74,3 +75,11 @@ model Likes {
 
   @@unique([userId, postId])
 }
+
+model Tags {
+  id        Int       @id @default(autoincrement())
+  tags      String?
+  postId    Int
+  user_Post user_Post @relation(fields: [postId], references: [id])
+}
+
