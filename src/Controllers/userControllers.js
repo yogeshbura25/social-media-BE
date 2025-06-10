@@ -10,7 +10,7 @@ import { generateOtp, generateOtpExpiresAt, token, tokenExpiration } from "../ut
 import cron from 'node-cron';
 
 
-cron.schedule('*/1 * * * *', async () => {
+cron.schedule('*/10 * * * *', async () => {
     // console.log("Running OTP cleanup at", new Date().toISOString());
   try {
     const result = await prisma.user.updateMany({

@@ -146,11 +146,13 @@ export const updatePost = async (req, res) => {
 export const deletePost = async (req, res) => {
   const postId = parseInt(req.params.postId);
   const baseUploadPath = path.join("uploads", "post");
-
+ const userId = req.user.id;
   try {
     // 1. Find the post with files
     const post = await prisma.user_Post.findUnique({
-      where: { id: postId },
+      where: { id: postId,
+        userId: userId
+       },
       include: { files: true },
     });
 
@@ -187,5 +189,29 @@ export const deletePost = async (req, res) => {
   } catch (error) {
     console.error("Delete post error:", error);
     return res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+export const sharePost = async (req, res) => {
+  const postId = parseInt(req.params.id);
+  const userId = req.user.id; 
+
+  try {
+    const post = await prisma.user_Post.findFirst({
+      where: {
+        id: postId,
+        userId: userId, // only allow fetching if it belongs to the user
+      },
+      include: { files: true },
+    });
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found or not accessible" });
+    }
+
+    return res.status(200).json(post);
+  } catch (error) {
+    console.error("Fetch post error:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
