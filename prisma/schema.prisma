@@ -82,4 +82,3 @@ model Tags {
   postId    Int
   user_Post user_Post @relation(fields: [postId], references: [id])
 }
-

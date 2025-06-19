@@ -64,6 +64,7 @@ export const getPost = async (req, res) => {
       orderBy: { createdAt: "desc" },
       include: {
         files: true,
+        tags: true,
         likes: {
           select: {
             user: {
@@ -97,6 +98,7 @@ export const getPost = async (req, res) => {
           postPath: `${baseUrl}/uploads/post/${file.post}`,
           postId: file.postId,
         })),
+     tags: post.tags.map((tag) => tag.tags),
         likeCount: likedUsers.length,
         likedUsers, // only usernames
       };
