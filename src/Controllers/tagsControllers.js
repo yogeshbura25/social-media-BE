@@ -101,41 +101,41 @@ export const createTag = async (req, res) => {
 // };
 
 
-// export const updateTag = async (req, res) => {
-//   const { id } = req.params;
-//   const { tags } = req.body;
-//   const userId = req.user.id;
+export const updateTag = async (req, res) => {
+  const { id } = req.params;
+  const { tags } = req.body;
+  const userId = req.user.id;
 
-//   try {
-//     const tag = await prisma.tags.findUnique({ where: { id: parseInt(id) } });
-//     if (!tag) return res.status(404).json({ message: "Tag not found" });
+  try {
+    const tag = await prisma.tags.findUnique({ where: { id: parseInt(id) } });
+    if (!tag) return res.status(404).json({ message: "Tag not found" });
 
-//     const post = await prisma.user_Post.findUnique({
-//       where: { id: tag.postId },
-//     });
+    const post = await prisma.user_Post.findUnique({
+      where: { id: tag.postId },
+    });
 
-//       if (tags.trim() === "") {
-//       await prisma.tags.deleteMany({
-//         where: { id: parseInt(id) },
-//       });
+      if (tags.trim() === "") {
+      await prisma.tags.deleteMany({
+        where: { id: parseInt(id) },
+      });
 
-//       return res.status(200).json({ message: "All tags removed from post" });
-//     }
-//     if (!post || post.userId !== userId) {
-//       return res
-//         .status(403)
-//         .json({ message: "Not authorized to update this tag" });
-//     }
+      return res.status(200).json({ message: "All tags removed from post" });
+    }
+    if (!post || post.userId !== userId) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update this tag" });
+    }
 
-//     const updatedTag = await prisma.tags.update({
-//       where: { id: parseInt(id) },
-//       data: { tags },
-//     });
+    const updatedTag = await prisma.tags.update({
+      where: { id: parseInt(id) },
+      data: { tags },
+    });
 
-//     res.status(200).json(updatedTag);
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
+    res.status(200).json(updatedTag);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 

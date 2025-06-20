@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post('/tags', verifyToken, createTag);
 // router.get('/tags', verifyToken, getPostsByTag);
-// router.put('/tags/:id', verifyToken, updateTag);
+router.put('/tags/:id', verifyToken, updateTag);
 
 
 export default router;
