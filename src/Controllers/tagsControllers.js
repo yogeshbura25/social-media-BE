@@ -51,57 +51,57 @@ export const createTag = async (req, res) => {
 };
 
 
-// export const getPostsByTag = async (req, res) => {
-//   const { tag } = req.body;
+export const getPostsByTag = async (req, res) => {
+  const { tag } = req.body;
 
-//   if (!tag || typeof tag !== "string") {
-//     return res
-//       .status(400)
-//       .json({ message: "Tag is required in request body." });
-//   }
+  if (!tag || typeof tag !== "string") {
+    return res
+      .status(400)
+      .json({ message: "Tag is required in request body." });
+  }
 
-//   try {
+  try {
    
-//     const matchedTags = await prisma.tags.findMany({
-//       where: {
-//         tags: {
-//           contains: tag.trim(),
-//           mode: "insensitive", 
-//         },
-//       },
-//       include: {
-//         user_Post: {
-//           include: {
-//             files: true,
-//             likes: true,
-//           },
-//         },
-//       },
-//     });
+    const matchedTags = await prisma.tags.findMany({
+      where: {
+        tags: {
+          contains: tag.trim(),
+          mode: "insensitive", 
+        },
+      },
+      include: {
+        user_Post: {
+          include: {
+            files: true,
+            likes: true,
+          },
+        },
+      },
+    });
 
   
-//     const matchedPosts = matchedTags.map((tagEntry) => tagEntry.user_Post);
+    const matchedPosts = matchedTags.map((tagEntry) => tagEntry.user_Post);
 
-//     if (matchedPosts.length === 0) {
-//       return res
-//         .status(404)
-//         .json({ message: `No posts found with tag ${tag}` });
-//     }
+    if (matchedPosts.length === 0) {
+      return res
+        .status(404)
+        .json({ message: `No posts found with tag ${tag}` });
+    }
 
-//     return res.status(200).json({
-//       message: `Posts with tag ${tag} fetched successfully.`,
-//       data: matchedPosts,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching posts by tag:", error);
-//     return res
-//       .status(500)
-//       .json({ message: "Server error", error: error.message });
-//   }
-// };
+    return res.status(200).json({
+      message: `Posts with tag ${tag} fetched successfully.`,
+      data: matchedPosts,
+    });
+  } catch (error) {
+    console.error("Error fetching posts by tag:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
+  }
+};
 
 
-export const updateTag = async (req, res) => {
+export const upgdateTag = async (req, res) => {
   const { id } = req.params;
   const { tags } = req.body;
   const userId = req.user.id;

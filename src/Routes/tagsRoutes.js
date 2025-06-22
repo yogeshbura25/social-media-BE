@@ -6,7 +6,7 @@ import { verifyToken } from "../middleware/authentication.js";
 const router = express.Router();
 
 router.post('/tags', verifyToken, createTag);
-// router.get('/tags', verifyToken, getPostsByTag);
+router.get('/tags', verifyToken, getPostsByTag);
 router.put('/tags/:id', verifyToken, updateTag);
 
 
