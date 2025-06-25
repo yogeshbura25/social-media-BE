@@ -101,7 +101,7 @@ export const getPostsByTag = async (req, res) => {
 };
 
 
-export const upgdateTag = async (req, res) => {
+export const updateTag = async (req, res) => {
   const { id } = req.params;
   const { tags } = req.body;
   const userId = req.user.id;
