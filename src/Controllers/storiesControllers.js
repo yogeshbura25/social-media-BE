@@ -1,5 +1,7 @@
 import prisma from "../utils/db-config.js";
 import cron from "node-cron";
+import fs from "fs";
+import path from "path";
 
 // Run every 30 seconds
 cron.schedule("*/30 * * * * *", async () => {
@@ -13,7 +15,7 @@ cron.schedule("*/30 * * * * *", async () => {
     });
 
     if (result.count > 0) {
-      //   console.log(`Deleted ${result.count} expired stories`);
+        console.log(`Deleted ${result.count} expired stories`);
     }
   } catch (error) {
     console.error("Error deleting expired stories:", error);
@@ -21,7 +23,8 @@ cron.schedule("*/30 * * * * *", async () => {
 });
 
 export const createStories = async (req, res) => {
-  const { text, image } = req.body;
+  const { text } = req.body;
+   const image = req.file?.filename
   const userId = req.user.id;
   if (!userId) {
     return res.status(400).json({ message: "userId is required" });

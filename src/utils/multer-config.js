@@ -24,3 +24,15 @@ const storagePost = multer.diskStorage({
   },
 });
 export const uploadPost = multer({ storage: storagePost }); 
+
+// For Stories
+const storageStory = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/stories');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = "stories_" + Date.now() + path.extname(file.originalname);
+    cb(null, uniqueSuffix);
+  },
+});
+export const uploadStory = multer({ storage: storageStory }); 
