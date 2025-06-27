@@ -15,7 +15,7 @@ cron.schedule("*/30 * * * * *", async () => {
     });
 
     if (result.count > 0) {
-        console.log(`Deleted ${result.count} expired stories`);
+      console.log(`Deleted ${result.count} expired stories`);
     }
   } catch (error) {
     console.error("Error deleting expired stories:", error);
@@ -24,8 +24,11 @@ cron.schedule("*/30 * * * * *", async () => {
 
 export const createStories = async (req, res) => {
   const { text } = req.body;
-   const image = req.file?.filename
+  const image = req.file?.filename;
+
   const userId = req.user.id;
+  const baseUrl = `${process.env.baseUrl}`;
+  const imagePath = image ? `${baseUrl}/uploads/stories/${image}` : null;
   if (!userId) {
     return res.status(400).json({ message: "userId is required" });
   }
@@ -35,6 +38,7 @@ export const createStories = async (req, res) => {
       data: {
         text,
         image,
+        imagePath,
         userId,
         story_expire: expireTime,
       },
@@ -46,7 +50,6 @@ export const createStories = async (req, res) => {
     return res.status(500).json({ message: "Failed to post story" });
   }
 };
-
 
 // export const getStories = async (req, res) => {
 //   const userId = req.user.id;
