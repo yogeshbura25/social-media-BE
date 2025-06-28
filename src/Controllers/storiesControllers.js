@@ -75,45 +75,45 @@ export const createStories = async (req, res) => {
   }
 };
 
-// export const deleteStory = async (req, res) => {
-//   const storyID = parseInt(req.params.storyID);
-//   const baseUploadPath = path.join("uploads", "stories");
-//   const userId = req.user.id;
+export const deleteStory = async (req, res) => {
+  const storyID = parseInt(req.params.storyID);
+  const baseUploadPath = path.join("uploads", "stories");
+  const userId = req.user.id;
 
-//   try {
-//     const findStory = await prisma.stories.findUnique({
-//       where: {
-//         id: storyID,
-//         userId: userId,
-//       },
-//     });
+  try {
+    const findStory = await prisma.stories.findUnique({
+      where: {
+        id: storyID,
+        userId: userId,
+      },
+    });
 
-//     if (!findStory) {
-//       return res.status(404).json({ message: "User story not found." });
-//     }
+    if (!findStory) {
+      return res.status(404).json({ message: "User story not found." });
+    }
 
-//     const filePath = path.join(baseUploadPath, findStory.image); // <-- Adjust field name
+    const filePath = path.join(baseUploadPath, findStory.image); // <-- Adjust field name
 
-//     if (fs.existsSync(filePath)) {
-//       try {
-//         fs.unlinkSync(filePath);
-//         console.log("Deleted file:", filePath);
-//       } catch (err) {
-//         console.error("Failed to delete file:", filePath, err);
-//       }
-//     }
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+        console.log("Deleted file:", filePath);
+      } catch (err) {
+        console.error("Failed to delete file:", filePath, err);
+      }
+    }
 
-//     await prisma.stories.delete({
-//       where: { id: findStory.id },
-//     });
+    await prisma.stories.delete({
+      where: { id: findStory.id },
+    });
 
-//   return res.status(200).json({ message: `Story deleted successfully for user ${userId}.` });
+  return res.status(200).json({ message: `Story deleted successfully for user ${userId}.` });
 
-//   } catch (error) {
-//     console.error("Delete story error:", error);
-//     return res.status(500).json({ message: "Something went wrong." });
-//   }
-// };
+  } catch (error) {
+    console.error("Delete story error:", error);
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+};
 
 export const getStories = async (req, res) => {
   const userId = req.user.id;
