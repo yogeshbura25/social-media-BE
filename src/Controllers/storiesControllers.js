@@ -115,25 +115,25 @@ export const createStories = async (req, res) => {
 //   }
 // };
 
-// export const getStories = async (req, res) => {
-//   const userId = req.user.id;
-//   try {
-//     const stories = await prisma.stories.findMany({
-//       where: {
-//         userId,
-//         story_expire: {
-//           gt: new Date(),
-//         },
-//       },
-//       orderBy: {
-//         story_expire: "asc", // Optional: order by soonest expiry first
-//       },
-//     });
-//   if (stories.length === 0) {
-//       return res.status(404).json({ message: "No active stories found for user" });
-//     };
-//     return res.status(200).json({ data: stories });
-//   } catch (error) {
-//     return res.status(500).json({ message: "Error fetching stories" });
-//   }
-// };
+export const getStories = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const stories = await prisma.stories.findMany({
+      where: {
+        userId,
+        story_expire: {
+          gt: new Date(),
+        },
+      },
+      orderBy: {
+        story_expire: "asc", // Optional: order by soonest expiry first
+      },
+    });
+  if (stories.length === 0) {
+      return res.status(404).json({ message: "No active stories found for user" });
+    };
+    return res.status(200).json({ data: stories });
+  } catch (error) {
+    return res.status(500).json({ message: "Error fetching stories" });
+  }
+};
