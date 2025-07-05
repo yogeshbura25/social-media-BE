@@ -23,6 +23,7 @@ model user {
   stories              Stories[]
   bio                  user_Bio?
   post                 user_Post[]
+  comments  Comment[]
 }
 
 model user_Bio {
@@ -49,6 +50,7 @@ model user_Post {
   files       File[]
   likes       Likes[]
   tags        Tags[]
+  comments  Comment[]
   user        user     @relation(fields: [userId], references: [id])
 }
 
@@ -75,6 +77,20 @@ model Tags {
   tags      String?
   postId    Int
   user_Post user_Post @relation(fields: [postId], references: [id])
+}
+
+model Comment {
+  id         Int       @id @default(autoincrement())
+  content    String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  post       user_Post @relation(fields: [postId], references: [id])
+  postId     Int
+  user       user      @relation(fields: [userId], references: [id])
+  userId     Int
+  parent     Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  parentId   Int?
+  replies    Comment[] @relation("CommentReplies")
 }
 
 model Stories {
