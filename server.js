@@ -36,8 +36,8 @@ app.get("/", (req, res) => {
   res.send("Hello People...");
 });
 app.use(cors({
-  origin: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: "http://localhost:3000",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   credentials: true
 }));
 
