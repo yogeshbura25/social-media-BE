@@ -6,7 +6,7 @@ import {
   sendOtpverifyEmail,
   sendPasswordResetEmail,
 } from "../utils/mailBox.js";
-import { generateOtp, generateOtpExpiresAt, token, tokenExpiration } from "../utils/otp.js";
+import { generateOtp, generateOtpExpiresAt, passwordToken, tokenExpiration } from "../utils/otp.js";
 import cron from 'node-cron';
 
 
@@ -46,51 +46,64 @@ cron.schedule('*/10 * * * *', async () => {
 
 export const register = async (req, res) => {
   const { email, password, confirmPassword } = req.body;
+
   try {
-    const findUser = await prisma.user.findUnique({
-      where: {
-        email,
-      },
+ 
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
     });
 
-    if (findUser) {
+    if (existingUser) {
       return res.status(400).json({
         message: Message.EMAIL_ALREADY_EXISTS,
       });
     }
 
+  
     if (password !== confirmPassword) {
       return res.status(400).json({
         message: Message.PASSWORD_ERROR,
       });
     }
 
-    const saltpassword = 10;
-    const hashedpassword = await bcrypt.hash(password, saltpassword);
+  
+    const saltRounds = 6;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+ 
     const otp = generateOtp();
     const otpExpiresAt = generateOtpExpiresAt();
 
-    const createUSer = await prisma.user.create({
+  
+    const newUser = await prisma.user.create({
       data: {
         email,
-        password: hashedpassword,
+        password: hashedPassword,
         otp,
         otpExpiresAt,
         verified: false,
       },
     });
-    await sendOtpverifyEmail(email, otp);
-    return res.status(200).json({
-      data: createUSer,
+
+  
+    res.status(200).json({
+      data: newUser,
       message: Message.REGISTER_SUCCESS,
     });
+
+  
+    sendOtpverifyEmail(email, otp).catch((err) => {
+      console.error("Email sending failed:", err.message);
+    });
+
   } catch (error) {
-    //  console.error(error.message);
+    console.error("Registration error:", error);
     return res.status(500).json({
       message: Message.REGISTER_ERROR,
     });
   }
 };
+
 
 export const verifyEmail = async (req, res) => {
   const { email, otp } = req.body;
@@ -280,42 +293,59 @@ export const forgotPassword = async (req, res) => {
 
   try {
     const findUser = await prisma.user.findUnique({ where: { email } });
+
     if (!findUser) {
       return res.status(400).json({ message: Message.USER_NOT_FOUND });
     }
 
-   
+    // Generate token and expiration
+    const token = passwordToken; // or generateResetToken()
+    const tokenPasswordExpiration = tokenExpiration; // or your expiration logic
 
-    const resttoken = await prisma.user.update({
+    // Save token to DB
+    await prisma.user.update({
       where: { email },
       data: {
         resetPasswordToken: token,
-        resetPasswordExpires: tokenExpiration,
+        resetPasswordExpires: tokenPasswordExpiration,
       },
     });
 
-    await sendPasswordResetEmail(email, token); // Your email utility
-
+    // ✅ Respond immediately
     res.status(200).json({
-      // resttoken,
       message: Message.PASSWORD_RESET_LINK_SENT,
     });
+
+    // ✅ Send email **after response**, don't block user
+    sendPasswordResetEmail(email, token).catch((err) => {
+      console.error("Failed to send reset email:", err.message);
+    });
+
   } catch (error) {
     console.error("Forgot password error", error);
     res.status(500).json({ message: Message.FORGOT_PASSWORD_ERROR });
   }
 };
 
+
 export const resetPassword = async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
 
   try {
+    // Password validation
+    if (!password || password.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 8 characters long.",
+      });
+    }
+
+    // Find user with valid reset token and non-expired token
     const findUser = await prisma.user.findFirst({
       where: {
         resetPasswordToken: token,
         resetPasswordExpires: {
-          gt: new Date(),
+          gt: new Date(), // token not expired
         },
       },
     });
@@ -326,13 +356,18 @@ export const resetPassword = async (req, res) => {
         .json({ message: Message.INVALID_OR_EXPIRED_TOKEN });
     }
 
+    // Check if password is same as old one
     const isSamePassword = await bcrypt.compare(password, findUser.password);
     if (isSamePassword) {
-      return res.status(400).json({ message: Message.PASSWORD_SAME_AS_OLD });
+      return res
+        .status(400)
+        .json({ message: Message.PASSWORD_SAME_AS_OLD });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(password, 6); // 🔒 better security
 
+    // Update user with new password and clear reset token
     await prisma.user.update({
       where: { id: findUser.id },
       data: {
@@ -342,12 +377,16 @@ export const resetPassword = async (req, res) => {
       },
     });
 
-    res.status(200).json({ message: Message.PASSWORD_RESET_SUCCESS });
+    return res.status(200).json({ message: Message.PASSWORD_RESET_SUCCESS });
+
   } catch (error) {
     console.error("Reset password error", error);
-    res.status(500).json({ message: Message.RESET_PASSWORD_ERROR });
+    return res
+      .status(500)
+      .json({ message: Message.RESET_PASSWORD_ERROR });
   }
 };
+
 
 export const deleteAcc = async (req, res) => {
   const email = req.user.email; // email from token

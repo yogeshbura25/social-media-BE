@@ -1,6 +1,5 @@
 import prisma from "../utils/db-config.js";
 import jwt from "jsonwebtoken";
-// const JWT_SECRET = process.env.JWT_SECRET; // same secret used for signing
 
 // REST API - Get comments for a specific post
 export const getComments = async (req, res) => {

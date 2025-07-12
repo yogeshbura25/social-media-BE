@@ -5,5 +5,5 @@ export const generateOtp = () =>
 
 export const generateOtpExpiresAt = () => new Date(Date.now() + 10 * 60 * 1000); // 1 min from now
 
-export const token = crypto.randomBytes(20).toString("hex");
+export const passwordToken = crypto.randomBytes(20).toString("hex");
 export const tokenExpiration = new Date(Date.now() + 10 * 60 * 1000); // 1 minutes
